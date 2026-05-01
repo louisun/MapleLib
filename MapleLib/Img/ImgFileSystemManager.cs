@@ -141,8 +141,7 @@ namespace MapleLib.Img
                 };
             }
 
-            // Default to BMS (IV {0,0,0,0}) so IMG filesystem data remains consistent across versions/localizations.
-            // Respect explicit non-custom versions when provided, and only use custom IV for explicit CUSTOM.
+            // Priority: explicit parameter > manifest encryption > default BMS
             if (explicitMapleVersion.HasValue)
             {
                 if (explicitMapleVersion.Value == WzMapleVersion.CUSTOM &&
@@ -163,6 +162,12 @@ namespace MapleLib.Img
                     _mapleVersion = WzMapleVersion.BMS;
                     _wzIv = WzTool.GetIvByMapleVersion(_mapleVersion);
                 }
+            }
+            else if (_versionInfo != null && !string.IsNullOrEmpty(_versionInfo.Encryption)
+                     && Enum.TryParse<WzMapleVersion>(_versionInfo.Encryption, out var parsedVersion))
+            {
+                _mapleVersion = parsedVersion;
+                _wzIv = WzTool.GetIvByMapleVersion(_mapleVersion);
             }
             else
             {
